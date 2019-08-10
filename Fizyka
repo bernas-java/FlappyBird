@@ -1,0 +1,26 @@
+package main;
+
+public class Fizyka {
+
+    private static int time = 1;
+    private static int power = 1;
+
+    public static void gravity() {
+        GamePanel.yCoor += power*time;
+    }
+
+    public static void jump() {
+
+        GamePanel.yCoor -= power*time;
+
+    }
+
+    public static void setTime(int time) {
+        Fizyka.time = time;
+    }
+
+    public static int getTime() {
+        return time;
+    }
+
+}
