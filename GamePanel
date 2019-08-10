@@ -1,0 +1,139 @@
+package main;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.Random;
+
+public class GamePanel extends JPanel implements Runnable, KeyListener {
+
+    private Thread t;
+
+    private Random random;
+
+    private boolean running;
+
+    private boolean jumping = false;
+
+    private int ticks = 0;
+
+    private int jump = 0;
+
+    private int score = 0;
+
+    public static final int WIDTH = 600, HEIGHT = 800;
+
+    public static int xCoor = 60, yCoor = HEIGHT/2-25;
+
+    private Pipes pipes;
+
+    GamePanel() {
+        random = new Random();
+        setFocusable(true);
+        addKeyListener(this);
+        setPreferredSize(new Dimension(WIDTH,HEIGHT));
+        start();
+        pipes = new Pipes(60,random.nextInt(3)+1,random.nextInt(3)+1);
+    }
+
+    private void start() {
+        try {
+            running = true;
+            t = new Thread(this);
+            t.start();
+        } catch (Exception e) {
+            System.out.println("Nie udało się uruchomić wątku.");
+        }
+    }
+    private void stop() {
+        running = false;
+        try {
+            t.join();
+        } catch (Exception e) {
+            System.out.println("Nie udało się uśpić wątku.");
+        }
+    }
+    private void tick() {
+            if (jump == 0) {
+                Fizyka.gravity();
+                Fizyka.setTime(Fizyka.getTime() + 1);
+            }
+            if (jumping) {
+                Fizyka.setTime(10);
+                jumping = false;
+            }
+            if (yCoor < 0) {
+                jump = 0;
+                jumping = false;
+            }
+            if (jump > 0) {
+                Fizyka.jump();
+                Fizyka.setTime(Fizyka.getTime());
+                jump--;
+            }
+            if (yCoor > 800) {
+                stop();
+            }
+            if (pipes.getxCoor() < -10) {
+                xCoor = 60;
+                pipes = new Pipes(xCoor,random.nextInt(3)+1,random.nextInt(3)+1);
+            }
+            if (pipes.getxCoor() == 30) {
+                score++;
+            }
+            if (pipes.getxCoor() > 20 && pipes.getxCoor() < 34 && yCoor-9 < pipes.getUpPipe()*100 ) {
+                stop();
+            }
+            if (pipes.getxCoor() > 20 && pipes.getxCoor() < 34 && yCoor+70 > HEIGHT-pipes.getDownPipe()*100 ) {
+                stop();
+            }
+            pipes.setxCoor(xCoor);
+            xCoor--;
+    }
+
+    public void paint(Graphics g) {
+
+        g.setColor(new Color(135,206,235));
+        g.fillRect(0,0,WIDTH,HEIGHT);
+        g.setColor(Color.RED);
+        g.fillOval(WIDTH/2-30,yCoor,60,60);
+        pipes.draw(g);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Verdana", Font.BOLD,20));
+        g.drawString("Score: "+score,WIDTH-110,26);
+
+    }
+
+    @Override
+    public void run() {
+        while (running) {
+            tick();
+            repaint();
+            try {
+                Thread.sleep(1000/50);
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int key = e.getKeyCode();
+        if (key == 32 && jump < 5) {
+            jump += 18;
+            jumping = true;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+}
